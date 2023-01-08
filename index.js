@@ -14,6 +14,8 @@ const parameters = {
 };
 const email = "jrdbrown17@gmail.com";
 const fileName = `RSIData${Date.now()}.csv`;
+const overboughtThreshold = 65;
+const undersoldThreshold = 35;
 let overbought = false;
 let undersold = false;
 //var index = 0;
@@ -28,11 +30,11 @@ const runRSICheck = async () => {
     var {datetime, rsi} = await getRsi(parameters);
     var stockPrice = await getPrice(parameters);
 
-    if(spamGuard(rsi) && (rsi >= 70 || rsi <= 30))
+    if(spamGuard(rsi) && (rsi >= overboughtThreshold || rsi <= undersoldThreshold))
     {
         writeFile(rsi,stockPrice,datetime);
 
-        let subject =  `SPX is ${(rsi >= 70) ? "overbought":"undersold"}`;
+        let subject =  `SPX is ${(rsi >= overboughtThreshold) ? "overbought":"undersold"}`;
         var messgae = `<p>RSI is ${rsi} Stock price is ${stockPrice} at ${datetime}</p>`;
         sendEmail(email, subject, messgae)
             .then((messageId) => console.log('Email sent successfully:', messageId))
@@ -51,11 +53,11 @@ const writeFile = async (rsi, stockPrice, datetime) => {
 
 const spamGuard = (rsi) =>{
     let allowEmail = !overbought && !undersold;
-    if(rsi >= 70)
+    if(rsi >= overboughtThreshold)
     {
         overbought = true;
     }
-    else if(rsi <= 30)
+    else if(rsi <= undersoldThreshold)
     {
         undersold = true;
     }
